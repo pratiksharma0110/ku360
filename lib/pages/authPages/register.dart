@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:ku360/components/button.dart';
+import 'package:ku360/utils/api_service.dart';
 import 'package:ku360/utils/user_functions.dart';
-
 import '../../components/text_field.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -17,166 +17,199 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  // text controllers
-  final firstnameController = TextEditingController();
-  final lastnameController = TextEditingController();
   final emailController = TextEditingController();
+  final otpController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
+  bool isOtpSent = false;
+  bool isOtpVerified = false;
+  bool isLoading = false;
+
+  // Email validation
+  String? validateEmail(String email) {
+    String pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$';
+    RegExp regExp = RegExp(pattern);
+    if (email.isEmpty) {
+      return 'Please enter an email';
+    } else if (!regExp.hasMatch(email)) {
+      return 'Please enter a valid email address';
+    }
+    return null;
   }
 
-  Future<void> registerUser() async {
-    String firstname = firstnameController.text.trim();
-    String lastname = lastnameController.text.trim();
+  // Password validation
+  String? validatePassword(String password) {
+    if (password.isEmpty) {
+      return 'Please enter a password';
+    } else if (password.length < 6) {
+      return 'Password must be at least 6 characters';
+    }
+    return null;
+  }
+
+  // Confirm Password validation
+  String? validateConfirmPassword(String password, String confirmPassword) {
+    if (confirmPassword != password) {
+      return 'Passwords do not match';
+    }
+    return null;
+  }
+
+  Future<void> sendOtp() async {
     String email = emailController.text.trim();
-    String password = passwordController.text.trim();
-    String confirmPassword = confirmPasswordController.text.trim();
-
-    // input validation
-    String? firstnameError = validateRequiredField(firstname, 'First Name');
-    String? lastnameError = validateRequiredField(lastname, 'Last Name');
     String? emailError = validateEmail(email);
-    String? passwordError = validatePassword(password);
-    String? confirmPasswordError =
-        validateConfirmPassword(password, confirmPassword);
 
-    List<String?> errors = [
-      firstnameError,
-      lastnameError,
-      emailError,
-      passwordError,
-      confirmPasswordError,
-    ];
-
-    //find error:
-    String? firstError =
-        errors.firstWhere((err) => err != null, orElse: () => null);
-
-    if (firstError != null) {
+    if (emailError != null) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(firstError)));
+          .showSnackBar(SnackBar(content: Text(emailError)));
       return;
+    }
+
+    try {
+      setState(() {
+        isLoading = true;
+      });
+
+      await ApiService.sendOtp(email); // Assume this API call sends the OTP
+      setState(() {
+        isOtpSent = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('OTP sent to your email.')));
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error sending OTP: $e')));
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
 
-  @override
-  void dispose() {
-    firstnameController.dispose();
-    lastnameController.dispose();
-    emailController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
+  Future<void> verifyOtp() async {
+    String otp = otpController.text.trim();
+
+    if (otp.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please enter the OTP.')));
+      return;
+    }
+
+    try {
+      bool isVerified = await ApiService.verifyOtp(emailController.text, otp);
+      if (isVerified) {
+        setState(() {
+          isOtpVerified = true;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('OTP verified. Proceed to register.')));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Invalid OTP.')));
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error verifying OTP: $e')));
+    }
+  }
+
+  Future<void> registerUser() async {
+    if (!isOtpVerified) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please verify OTP first.')));
+      return;
+    }
+
+    String password = passwordController.text.trim();
+    String confirmPassword = confirmPasswordController.text.trim();
+    String? passwordError = validatePassword(password);
+    String? confirmPasswordError =
+    validateConfirmPassword(password, confirmPassword);
+
+    if (passwordError != null || confirmPasswordError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(passwordError ?? confirmPasswordError!)));
+      return;
+    }
+
+    // Call API to register
+    // Implement registration logic here
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: MediaQuery.of(context).size.height,
-          ),
-          child: IntrinsicHeight(
-            child: Stack(children: [
-              Container(
-                height: double.infinity,
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 60.0, left: 22),
-                child: const Text(
-                  'REGISTER NOW',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18.0, vertical: 36.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              MyTextField(
+                controller: emailController,
+                hintText: "Email",
+                obscureText: false,
+                prefixIcon: const Icon(Iconsax.sms),
               ),
+              const SizedBox(height: 12),
+              if (isOtpSent && !isOtpVerified)
+                Column(
+                  children: [
+                    MyTextField(
+                      controller: otpController,
+                      hintText: "Enter OTP",
+                      obscureText: false,
+                      prefixIcon: const Icon(Iconsax.key),
+                    ),
+                    const SizedBox(height: 12),
+                    MyButton(onTap: verifyOtp, text: "Verify OTP"),
+                  ],
+                ),
+              if (isOtpVerified)
+                Column(
+                  children: [
+                    MyTextField(
+                      controller: passwordController,
+                      hintText: "Password",
+                      obscureText: true,
+                      prefixIcon: const Icon(Iconsax.lock),
+                    ),
+                    const SizedBox(height: 12),
+                    MyTextField(
+                      controller: confirmPasswordController,
+                      hintText: "Confirm Password",
+                      obscureText: true,
+                      prefixIcon: const Icon(Iconsax.lock),
+                    ),
+                    const SizedBox(height: 20),
+                    MyButton(onTap: registerUser, text: "Register"),
+                  ],
+                ),
+              if (!isOtpSent && !isLoading)
+                MyButton(onTap: sendOtp, text: "Send OTP"),
+              if (isLoading)
+                const CircularProgressIndicator(),
               const SizedBox(height: 25),
-              Padding(
-                padding: const EdgeInsets.only(top: 200.0),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18.0,
-                    vertical: 36.0,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("Already have an account?"),
+                  const SizedBox(width: 4),
+                  GestureDetector(
+                    onTap: widget.onTap,
+                    child: const Text(
+                      "Login Instead",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Name field
-                      MyTextField(
-                        controller: firstnameController,
-                        hintText: "First Name",
-                        obscureText: false,
-                        prefixIcon: const Icon(Iconsax.user),
-                      ),
-                      const SizedBox(height: 12),
-
-                      MyTextField(
-                        controller: lastnameController,
-                        hintText: "Last Name",
-                        obscureText: false,
-                        prefixIcon: const Icon(Iconsax.user_edit),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Email field
-                      MyTextField(
-                        controller: emailController,
-                        hintText: "Email",
-                        obscureText: false,
-                        prefixIcon: const Icon(Iconsax.sms),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Password field
-                      MyTextField(
-                        controller: passwordController,
-                        hintText: "Password",
-                        obscureText: true,
-                        prefixIcon: const Icon(Iconsax.lock),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Confirm password field
-                      MyTextField(
-                        controller: confirmPasswordController,
-                        hintText: "Confirm Password",
-                        obscureText: true,
-                        prefixIcon: const Icon(Iconsax.lock),
-                      ),
-                      const SizedBox(height: 20),
-
-                      MyButton(onTap: registerUser, text: "Register "),
-                      const SizedBox(height: 25),
-
-                      // Not a member
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text("Already have an account?"),
-                          const SizedBox(width: 4),
-                          GestureDetector(
-                            onTap: widget.onTap,
-                            child: const Text(
-                              "Login Instead",
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 25),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            ]),
+            ],
           ),
         ),
       ),

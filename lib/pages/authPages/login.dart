@@ -30,12 +30,10 @@ class _LoginPageState extends State<LoginPage> {
     String email = emailController.text.trim();
     String? emailError = validateEmail(email);
 
-    if (emailError != null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(emailError)));
-      return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(emailError!)));
+    return;
     }
-  }
 
   @override
   void dispose() {
