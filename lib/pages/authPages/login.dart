@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
-
+import 'package:ku360/pages/on_boarding/on_boarding_page.dart';
+import 'package:ku360/services/api/auth_service.dart';
+import 'package:ku360/pages/home.dart';
 import 'package:ku360/utils/user_functions.dart';
 import '../../components/text_field.dart';
 import '../../components/button.dart';
@@ -20,6 +22,7 @@ class _LoginPageState extends State<LoginPage> {
   // text controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final authService = AuthService();
 
   @override
   void initState() {
@@ -28,12 +31,35 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> login() async {
     String email = emailController.text.trim();
+    String password = passwordController.text.trim();
     String? emailError = validateEmail(email);
 
     if (emailError != null) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(emailError)));
       return;
+    }
+    try {
+      final result = await authService.login(email, password);
+      if (result['success']) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OnBoardingPage(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Login failed')),
+        );
+      }
+    } catch (err) {
+      print(err);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error connecting to Sever'),
+        ),
+      );
     }
   }
 
