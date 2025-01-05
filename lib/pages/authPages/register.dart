@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:ku360/components/button.dart';
+import 'package:ku360/pages/authPages/login.dart';
+import 'package:ku360/services/api/auth_service.dart';
 import 'package:ku360/utils/user_functions.dart';
 
 import '../../components/text_field.dart';
@@ -23,6 +25,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final authService = AuthService();
 
   @override
   void initState() {
@@ -36,7 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
     String password = passwordController.text.trim();
     String confirmPassword = confirmPasswordController.text.trim();
 
-    // input validation
+    // Input validation
     String? firstnameError = validateRequiredField(firstname, 'First Name');
     String? lastnameError = validateRequiredField(lastname, 'Last Name');
     String? emailError = validateEmail(email);
@@ -60,6 +63,30 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(firstError)));
       return;
+    }
+    try {
+      final result = await authService.register(
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          password: password);
+
+      if (result['success']) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage(onTap: widget.onTap),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Registration failed')),
+        );
+      }
+    } catch (err) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(err.toString())),
+      );
     }
   }
 
