@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import '../../services/shared_pref.dart';
 
 class AuthService {
   final String registerUrl = dotenv.env['REGISTER_URL'] ?? '';
@@ -56,8 +57,8 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final responseBody = json.decode(response.body);
-        final token =
-            responseBody['token']; //backend is sending cookie as token in json
+        final sharedPref = SharedPrefHelper();
+        await sharedPref.saveValue('jwt_token', responseBody['token']);
 
         return {
           'success': true,
