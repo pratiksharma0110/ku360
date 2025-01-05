@@ -38,7 +38,7 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
       Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => Home(),
+            builder: (context) => HomePage(),
           ));
     }
   }
