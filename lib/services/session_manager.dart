@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ku360/pages/home.dart';
+import 'package:ku360/pages/screen.dart';
 import 'package:ku360/services/login_or_register.dart';
 
 import '../services/shared_pref.dart';
@@ -26,7 +26,7 @@ class _SessionHandlerPageState extends State<SessionHandlerPage> {
     if (token != null && token.isNotEmpty) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => Screen()),
       );
     } else {
       Navigator.pushReplacement(
