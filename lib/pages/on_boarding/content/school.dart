@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ku360/components/text.dart';
-import 'package:ku360/provider/on_boarding_notifier.dart';
-import 'package:ku360/provider/on_boarding_provider.dart';
+import 'package:ku360/provider/onBoarding/on_boarding_notifier.dart';
+import 'package:ku360/provider/onBoarding/on_boarding_provider.dart';
 
 class SchoolPage extends ConsumerStatefulWidget {
   const SchoolPage({super.key});

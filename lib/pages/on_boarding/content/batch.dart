@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ku360/components/dropdown.dart';
 import 'package:ku360/components/text.dart';
-import 'package:ku360/provider/on_boarding_notifier.dart';
-import 'package:ku360/provider/on_boarding_provider.dart';
+import 'package:ku360/provider/onBoarding/on_boarding_notifier.dart';
+import 'package:ku360/provider/onBoarding/on_boarding_provider.dart';
 
 class BatchPage extends ConsumerStatefulWidget {
   const BatchPage({super.key});
@@ -15,11 +15,9 @@ class BatchPage extends ConsumerStatefulWidget {
 class _BatchPageState extends ConsumerState<BatchPage> {
   @override
   Widget build(BuildContext context) {
-    // Fetch all years and semesters from providers
     final allYears = ref.watch(yearsProvider);
     final allSemesters = ref.watch(semestersProvider);
 
-    // Watch selected year and semester
     final selectedYear = ref.watch(yearNotifierProvider);
     final selectedSemester = ref.watch(semesterNotifierProvider);
 
