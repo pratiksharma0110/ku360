@@ -43,6 +43,8 @@ dependencies:
   smooth_page_indicator: ^1.2.0+3
   dio: ^5.7.0
   shared_preferences: ^2.3.5
+  google_nav_bar: ^5.0.7
+  flutter_pdfview: ^1.4.0
  
 
 dev_dependencies:
