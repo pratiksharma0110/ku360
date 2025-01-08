@@ -7,9 +7,9 @@ class Notice {
 
   factory Notice.fromJson(Map<String, dynamic> json) {
     return Notice(
-      title: json['title'],
-      date: json['date'],
-      downloadLink: json['downloadLink'],
+      title: json['title'] ?? "title",
+      date: json['date'] ?? "date ",
+      downloadLink: json['link'] ?? "link ",
     );
   }
 }
