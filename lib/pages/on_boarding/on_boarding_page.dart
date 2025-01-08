@@ -6,8 +6,8 @@ import 'package:ku360/pages/on_boarding/content/welcome.dart';
 import 'package:ku360/pages/on_boarding/content/school.dart';
 import 'package:ku360/pages/screen.dart';
 import 'package:ku360/provider/onBoarding/on_boarding_notifier.dart';
-import 'package:ku360/services/shared_pref.dart';
 import 'package:ku360/services/user_service.dart';
+import 'package:ku360/services/shared_pref.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnBoardingPage extends ConsumerStatefulWidget {
