@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:ku360/pages/on_boarding/on_boarding_page.dart';
-import 'package:ku360/services/api/auth_service.dart';
-import 'package:ku360/pages/home.dart';
+import 'package:ku360/services/auth_service.dart';
 import 'package:ku360/utils/user_functions.dart';
 import '../../components/text_field.dart';
 import '../../components/button.dart';

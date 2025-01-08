@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:ku360/components/button.dart';
 import 'package:ku360/pages/authPages/login.dart';
-import 'package:ku360/services/api/auth_service.dart';
+import 'package:ku360/services/auth_service.dart';
 import 'package:ku360/utils/user_functions.dart';
 
 import '../../components/text_field.dart';
