@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:ku360/pages/home.dart';
 import 'package:ku360/pages/on_boarding/content/batch.dart';
 import 'package:ku360/pages/on_boarding/content/department.dart';
 import 'package:ku360/pages/on_boarding/content/welcome.dart';
 import 'package:ku360/pages/on_boarding/content/school.dart';
-import 'package:ku360/provider/on_boarding_notifier.dart';
+import 'package:ku360/pages/screen.dart';
+import 'package:ku360/provider/onBoarding/on_boarding_notifier.dart';
+import 'package:ku360/services/shared_pref.dart';
+import 'package:ku360/services/user_service.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 class OnBoardingPage extends ConsumerStatefulWidget {
@@ -18,6 +20,8 @@ class OnBoardingPage extends ConsumerStatefulWidget {
 class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
   final PageController _controller = PageController();
   int _currentPage = 0;
+  final userService = UserService();
+  final sharedPref = SharedPrefHelper();
 
   void _goBack() {
     if (_currentPage > 0) {
@@ -35,11 +39,39 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
         curve: Curves.linearToEaseOut,
       );
     } else {
-      Navigator.pushReplacement(
+      onBoarding();
+    }
+  }
+
+  Future<void> onBoarding() async {
+    final selectedSchool = ref.read(schoolNotifierProvider);
+    final selectedDepartment = ref.read(departmentNotifierProvider);
+    final selectedYear = ref.read(yearNotifierProvider);
+    final selectedSemester = ref.read(semesterNotifierProvider);
+
+    try {
+      final result = await userService.completeOnboarding(
+          school: selectedSchool.name,
+          department: selectedDepartment.name,
+          year: selectedYear,
+          semester: selectedSemester,
+          profileImage: null);
+      if (result['success']) {
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => HomePage(),
-          ));
+            builder: (context) => Screen(),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content:
+                  Text(result['message'] ?? 'Failed Updating User Profile')),
+        );
+      }
+    } catch (e) {
+      print(e);
     }
   }
 
