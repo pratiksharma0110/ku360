@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:ku360/components/card.dart';
 import 'package:ku360/model/userprofile.dart';
-import 'package:ku360/services/profile_service.dart';
+
+import 'package:ku360/services/user_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -12,12 +13,12 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late Future<UserProfile> _profileFuture;
-  final profileService = ProfileService();
+  final userService = UserService();
 
   @override
   void initState() {
     super.initState();
-    _profileFuture = profileService.fetchUserProfile();
+    _profileFuture = userService.fetchUserProfile();
   }
 
   @override

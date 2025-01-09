@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ku360/model/userprofile.dart';
-import 'package:ku360/services/profile_service.dart';
+import 'package:ku360/services/user_service.dart';
+
 
 class MyAppBar extends StatefulWidget implements PreferredSizeWidget {
   final String title;
@@ -28,9 +29,9 @@ class _MyAppBarState extends State<MyAppBar> {
   }
 
   Future<void> _loadProfileImage() async {
-    final profileService = ProfileService();
+    final userService = UserService();
     try {
-      final UserProfile profile = await profileService.fetchUserProfile();
+      final UserProfile profile = await userService.fetchUserProfile();
       setState(() {
         _profileImageUrl = profile.profileImageUrl;
         _isLoading = false;
