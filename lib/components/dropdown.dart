@@ -7,14 +7,14 @@ class MyDropdown extends StatelessWidget {
   final ValueChanged<String?> onChanged;
   final Icon? prefixIcon;
 
-  MyDropdown({
-    Key? key,
+  const MyDropdown({
+    super.key,
     this.hintText = "Select Item",
     required this.items,
     required this.onChanged,
     this.value,
     this.prefixIcon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

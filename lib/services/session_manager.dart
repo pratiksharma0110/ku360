@@ -5,7 +5,7 @@ import 'package:ku360/services/login_or_register.dart';
 import '../services/shared_pref.dart';
 
 class SessionHandlerPage extends StatefulWidget {
-  const SessionHandlerPage({Key? key}) : super(key: key);
+  const SessionHandlerPage({super.key});
 
   @override
   State<SessionHandlerPage> createState() => _SessionHandlerPageState();

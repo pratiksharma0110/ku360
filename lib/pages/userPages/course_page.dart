@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ku360/model/course.dart';
 
 class CoursesPage extends StatelessWidget {
+  const CoursesPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     final List<Course> courses = Course.fetchCourses();

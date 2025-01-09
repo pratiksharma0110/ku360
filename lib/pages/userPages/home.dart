@@ -4,6 +4,8 @@ import 'package:ku360/services/profile_service.dart';
 class HomePage extends StatelessWidget {
   final profileService = ProfileService();
 
+  HomePage({super.key});
+
 //TODO: refactor and use api to render various things
   @override
   Widget build(BuildContext context) {

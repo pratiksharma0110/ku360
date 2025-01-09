@@ -38,7 +38,7 @@ class _BatchPageState extends ConsumerState<BatchPage> {
             MyDropdown(
               prefixIcon: const Icon(Icons.calendar_today),
               items: allYears.map((year) => year.toString()).toList(),
-              value: selectedYear?.toString(),
+              value: selectedYear.toString(),
               onChanged: (value) {
                 if (value != null) {
                   ref
