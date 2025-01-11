@@ -50,9 +50,10 @@ class _OnBoardingPageState extends ConsumerState<OnBoardingPage> {
     final selectedSemester = ref.read(semesterNotifierProvider);
 
     try {
+      final department = selectedDepartment.id.toString();
       final result = await userService.completeOnboarding(
           school: selectedSchool.name,
-          department: selectedDepartment.name,
+          department: department,
           year: selectedYear,
           semester: selectedSemester,
           profileImage: null);

@@ -27,6 +27,7 @@ class SchoolNotifier extends _$SchoolNotifier {
 class DepartmentNotifier extends _$DepartmentNotifier {
   static final Department defaultValue = Department(
     name: "Computer Science and Engineering",
+    id: 1,
     shortName: "CSE",
     image: 'assets/images/soe.png',
   );

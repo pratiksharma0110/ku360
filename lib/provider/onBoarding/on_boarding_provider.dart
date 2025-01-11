@@ -18,39 +18,12 @@ const List<School> allSchool = [
 const List<Department> allDepartment = [
   Department(
     name: "Computer Science and Engineering",
+    id:1,
     shortName: "CSE",
     image: 'assets/images/soe.png',
   ),
-  Department(
-    name: "Mechanical",
-    shortName: "Mech",
-    image: 'assets/images/sos.png',
-  ),
-  Department(
-    name: "Civil",
-    shortName: "CIEG",
-    image: 'assets/images/sos.png',
-  ),
-  Department(
-    name: "Electrical",
-    shortName: "EEE",
-    image: 'assets/images/sos.png',
-  ),
-  Department(
-    name: "Geomatics",
-    shortName: "GE",
-    image: 'assets/images/sos.png',
-  ),
-  Department(
-    name: "Architecture",
-    shortName: "Arch",
-    image: 'assets/images/sos.png',
-  ),
-  Department(
-    name: "Environemnt Science and Engineering",
-    shortName: "ESE",
-    image: 'assets/images/sos.png',
-  ),
+  Department(name: "Electrical Engineering", id: 2, shortName: "EEEG")
+  
 ];
 const List<int> allYears = [1, 2, 3, 4];
 

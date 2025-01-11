@@ -12,10 +12,11 @@ class School {
 
 class Department {
   final String name;
+  final int id;
   final String shortName;
   final String? image;
 
-  const Department({required this.name, required this.shortName, this.image});
+  const Department({required this.name,required this.id, required this.shortName, this.image});
 }
 
 class Year {
