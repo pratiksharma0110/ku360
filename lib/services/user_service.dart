@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:ku360/model/attendance.dart';
 import 'package:ku360/model/course.dart';
 import 'package:ku360/model/notice.dart';
 import 'package:ku360/model/routine.dart';
@@ -168,6 +169,50 @@ class UserService {
       rethrow;
     }
   }
+
+  Future<List<Attendance>> fetchAttendances() async {
+  final String attendanceUrl = dotenv.env['ATTENDANCE_URL'] ?? '';
+
+  try {
+    
+
+    
+    final response = await apiService.securedRequest(
+      attendanceUrl,
+      
+    );
+
+    if (response.statusCode == 200) {
+      
+      final decoded = json.decode(response.body);
+
+      if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+     
+        List<dynamic> data = decoded['data'];
+
+      
+        List<Attendance> attendances = data.map((json) {
+          return Attendance.fromJson(json);
+        }).toList();
+
+      
+        return attendances;
+      } else {
+      
+        throw Exception('Unexpected response format: Missing "data" key');
+      }
+    } else {
+      
+      throw Exception(
+          'Failed to fetch attendance. Status code: ${response.statusCode}');
+    }
+  } catch (e) {
+   
+    print('Error fetching attendances: $e');
+    throw Exception('Error fetching attendances');
+  }
+}
+
 
   Future<Map<String, dynamic>> completeOnboarding({
     required String school,

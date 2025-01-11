@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ku360/model/attendance.dart';
 import 'package:ku360/model/routine.dart';
 import 'package:ku360/services/user_service.dart';
 
@@ -12,6 +13,7 @@ class HomePage extends StatelessWidget {
         future: Future.wait([
           userService.fetchUserProfile(),
           userService.fetchRoutine(),
+          userService.fetchAttendances(),
         ]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -27,6 +29,7 @@ class HomePage extends StatelessWidget {
             final data = snapshot.data as List<dynamic>;
             final profile = data[0];
             final routine = data[1] as List<Routine>;
+            final attendances = data[2] as List<Attendance>;
 
             return SingleChildScrollView(
               child: Padding(
@@ -56,9 +59,12 @@ class HomePage extends StatelessWidget {
                         _buildDashboardCard(
                           context,
                           title: 'Attendance',
-                          subtitle: '85%',
+                          subtitle: "Track your attendance",
                           icon: Icons.bar_chart,
                           color: Colors.blue,
+                          onTap: () {
+                            _showAttendanceDetails(context, attendances);
+                          },
                         ),
                         _buildDashboardCard(
                           context,
@@ -69,13 +75,6 @@ class HomePage extends StatelessWidget {
                           onTap: () {
                             _showClassDetails(context, routine);
                           },
-                        ),
-                        _buildDashboardCard(
-                          context,
-                          title: 'Events',
-                          subtitle: '2 Upcoming',
-                          icon: Icons.event,
-                          color: Colors.green,
                         ),
                       ],
                     ),
@@ -107,7 +106,7 @@ class HomePage extends StatelessWidget {
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.28,
+          width: MediaQuery.of(context).size.width * 0.4, // Adjusted width
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
@@ -163,33 +162,13 @@ class HomePage extends StatelessWidget {
               SizedBox(height: 16),
               routine.isEmpty
                   ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.event_busy,
-                            color: Colors.blueAccent,
-                            size: 64,
-                          ),
-                          SizedBox(height: 16),
-                          Text(
-                            'No Classes Today!',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Enjoy your free time and relax.\nYou deserve it!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        'No Classes Today!',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
+                        ),
                       ),
                     )
                   : Expanded(
@@ -222,4 +201,84 @@ class HomePage extends StatelessWidget {
       },
     );
   }
+
+  void _showAttendanceDetails(BuildContext context, List<Attendance> attendances) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Attendance Summary',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 16),
+              attendances.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No attendance data available.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                    )
+                  : Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: attendances.length,
+                        itemBuilder: (context, index) {
+                          final attendance = attendances[index];
+                          return ListTile(
+                            leading: Icon(
+                              Icons.school,
+                              color: Colors.blueAccent,
+                            ),
+                            title: Text(attendance.sub_code),
+                            subtitle: Text(
+                              'Attended: ${attendance.attended_classes}/${attendance.total_classes}',
+                            ),
+                            trailing: Text(
+                              '${attendance.attended_percentage}%',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: double.parse(attendance.attended_percentage) >= 75
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  
 }
