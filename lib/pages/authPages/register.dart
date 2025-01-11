@@ -30,7 +30,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool isOtpSent = false;
   bool isOtpVerified = false;
 
-  final authService = AuthService();  // Initialize AuthService
+  final authService = AuthService();  
 
   Future<void> sendOtp() async {
     String email = emailController.text.trim();
@@ -44,7 +44,7 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     try {
-      await ApiService.sendOtp(email);  // Call ApiService to send OTP
+      await authService.sendOtp(email);  
       setState(() {
         isOtpSent = true;
       });
@@ -68,9 +68,9 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     try {
-      final result = await ApiService.verifyOtp(
+      final result = await authService.verifyOtp(
         emailController.text.trim(), otp,
-      );  // Call ApiService to verify OTP
+      );  
       if (result) {
         setState(() {
           isOtpVerified = true;
