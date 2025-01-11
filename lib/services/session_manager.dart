@@ -4,7 +4,7 @@ import 'package:ku360/services/on_boarding_or_home.dart';
 import 'package:ku360/services/user_service.dart';
 
 class SessionHandlerPage extends StatefulWidget {
-  const SessionHandlerPage({Key? key}) : super(key: key);
+  const SessionHandlerPage({super.key});
 
   @override
   State<SessionHandlerPage> createState() => _SessionHandlerPageState();

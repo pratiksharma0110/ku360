@@ -6,11 +6,11 @@ class MyText extends StatelessWidget {
   final FontWeight weight;
 
   const MyText({
-    Key? key,
+    super.key,
     required this.text,
     this.size = 16.0,
     this.weight = FontWeight.bold,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

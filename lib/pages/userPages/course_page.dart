@@ -3,6 +3,7 @@ import 'package:ku360/model/course.dart';
 import 'package:ku360/services/user_service.dart';
 
 class CoursesPage extends StatelessWidget {
+
   final userService = UserService();
 
   Future<List<Course>> fetchCourses() async {
