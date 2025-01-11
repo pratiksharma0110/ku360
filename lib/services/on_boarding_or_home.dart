@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:ku360/services/login_or_register.dart';
-import 'package:ku360/services/on_boarding_or_home.dart';
-import 'package:ku360/services/user_service.dart';
+import 'package:ku360/pages/on_boarding/on_boarding_page.dart';
+import 'package:ku360/pages/screen.dart'; // Main screen page
+import 'package:ku360/services/user_service.dart'; // Service for API calls
 
-class SessionHandlerPage extends StatefulWidget {
-  const SessionHandlerPage({Key? key}) : super(key: key);
+class OnboardingOrHomePage extends StatefulWidget {
+  const OnboardingOrHomePage({super.key});
 
   @override
-  State<SessionHandlerPage> createState() => _SessionHandlerPageState();
+  State<OnboardingOrHomePage> createState() => _OnboardingOrHomePageState();
 }
 
-class _SessionHandlerPageState extends State<SessionHandlerPage> {
+class _OnboardingOrHomePageState extends State<OnboardingOrHomePage> {
   final UserService userService = UserService();
+
+  
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: userService.verifyToken(),
+      future: userService.checkOnboardingStatus(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -25,31 +27,28 @@ class _SessionHandlerPageState extends State<SessionHandlerPage> {
             ),
           );
         } else if (snapshot.hasError) {
-        
           return Scaffold(
             body: Center(
               child: Text('An error occurred: ${snapshot.error}'),
             ),
           );
         } else if (snapshot.hasData && snapshot.data == true) {
-      
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const OnboardingOrHomePage()),
+              MaterialPageRoute(builder: (context) => const Screen()),
             );
           });
-          return const SizedBox(); 
         } else {
-        
           WidgetsBinding.instance.addPostFrameCallback((_) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const LoginOrRegister()),
+              MaterialPageRoute(builder: (context) => const OnBoardingPage()),
             );
           });
-          return const SizedBox(); 
         }
+
+        return const SizedBox();
       },
     );
   }

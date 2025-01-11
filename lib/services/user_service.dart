@@ -8,6 +8,41 @@ import 'package:ku360/services/api.dart';
 
 class UserService {
   final apiService = ApiService();
+  Future<bool> verifyToken() async {
+    final verifyUrl = dotenv.env['VERIFY'] ?? '';
+    try {
+      final response = await apiService.securedRequest(verifyUrl);
+      if (response.statusCode == 200) {
+        final responseBody = json.decode(response.body);
+        return responseBody['valid'] == true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Error during token verification: $e');
+      return false;
+    }
+  }
+
+  Future<bool> checkOnboardingStatus() async {
+    final String onboardingUrl = dotenv.env['ONBOARDING_STATUS'] ?? '';
+    try {
+      final response = await apiService.securedRequest(onboardingUrl);
+
+      if (response.statusCode == 200) {
+        final responseBody = json.decode(response.body);
+
+        return responseBody['on_boarding'] == true;
+      } else if (response.statusCode == 404) {
+        return false;
+      } else {
+        throw Exception('Unexpected response: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error checking onboarding status: $e');
+      throw Exception('Error checking onboarding status');
+    }
+  }
 
   Future<UserProfile> fetchUserProfile() async {
     final String userprofileUrl = dotenv.env['USER_PROFILE'] ?? '';
@@ -70,8 +105,24 @@ class UserService {
 
   Future<List<Routine>> fetchRoutine() async {
     final String routineUrl = dotenv.env['ROUTINE_URL'] ?? '';
+
+    final userProfile = await fetchUserProfile();
+    final year = userProfile.year.split(' ')[1];
+    final semester = userProfile.semester.split(' ')[1];
+    final department = userProfile.department_id.toString();
+    final Map<String, String> queryParams = {
+      'year_id': year,
+      'semester_id': semester,
+      'department_id': department,
+    };
+   
+
+
     try {
-      final response = await apiService.publicRequest(url: routineUrl);
+      final response = await apiService.publicRequest(
+          url: routineUrl, queryParams: queryParams);
+          
+
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
