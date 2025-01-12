@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/src/response.dart';
+import 'package:ku360/model/chapter.dart';
 import 'package:ku360/model/course.dart';
 import 'package:ku360/model/notice.dart';
 import 'package:ku360/model/routine.dart';
 import 'package:ku360/model/userprofile.dart';
 import 'package:ku360/services/api.dart';
-
+import 'package:ku360/model/searchResult.dart';
 class UserService {
   final apiService = ApiService();
   Future<bool> verifyToken() async {
@@ -63,45 +66,124 @@ class UserService {
     }
   }
 
-  Future<List<Course>> fetchCourses() async {
-    final String courseUrl = dotenv.env['COURSE_URL'] ?? '';
-    final userProfile = await fetchUserProfile();
-    final year = userProfile.year.split(' ')[1];
-    final semester = userProfile.semester.split(' ')[1];
+Future<List<Course>> fetchCourses() async {
+  final String courseUrl = dotenv.env['COURSE_URL'] ?? '';
+  final userProfile = await fetchUserProfile();
+  final year = userProfile.year.split(' ')[1];
+  final semester = userProfile.semester.split(' ')[1];
+  final department = userProfile.department_id.toString();
+  final Map<String, String> queryParams = {
+    'year_id': year,
+    'semester_id': semester,
+    'department_id': department,
+  };
 
-    final Map<String, String> queryParams = {
-      'year_id': year,
-      'semester_id': semester,
-    };
+  try {
+    final response = await apiService.publicRequest(
+      url: courseUrl,
+      queryParams: queryParams,
+    );
 
-    try {
-      final response = await apiService.publicRequest(
-        url: courseUrl,
-        queryParams: queryParams,
-      );
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
 
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
+      if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+        List<dynamic> data = decoded['data'];
 
-        if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
-          List<dynamic> data = decoded['data'];
+        List<Course> courses = data.map((json) {
+          return Course.fromJson(json);
+        }).toList();
 
-          List<Course> courses = data.map((json) {
-            return Course.fromJson(json);
-          }).toList();
-
-          return courses;
-        } else {
-          throw Exception('Unexpected response format: Missing "data" key');
-        }
+        return courses;
       } else {
-        throw Exception(
-            'Failed to load courses. Status code: ${response.statusCode}');
+        throw Exception('Unexpected response format: Missing "data" key');
       }
-    } catch (e) {
-      throw Exception("Error fetching courses: $e");
+    } else {
+      throw Exception(
+          'Failed to load courses. Status code: ${response.statusCode}');
     }
+  } catch (e) {
+    throw Exception("Error fetching courses: $e");
   }
+}
+Future<List<SearchResult>> searchResults(String chapName, String courseName) async {
+  final String searchUrl = dotenv.env['SEARCH_URL'] ?? '';
+  final Map<String, String> queryParams = {
+    'chapter_name': chapName,
+    'course_name': courseName,
+  };
+
+  print('Chapter Name: $chapName');
+  print('Course Name: $courseName');
+  print('Search URL: $searchUrl');
+
+  try {
+    final response = await apiService.publicRequest(
+      url: searchUrl,
+      queryParams: queryParams,
+    );
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      final List<dynamic> jsonData = json.decode(response.body);
+
+      // Map the response data to SearchResult objects
+      return jsonData.map<SearchResult>((item) {
+        // Assuming item has the necessary fields based on your API response
+        return SearchResult.fromJson(item);
+      }).toList();
+    } else {
+      print('Failed to fetch search results. Status code: ${response.statusCode}');
+      return [];
+    }
+  } catch (e) {
+    print('Error fetching search results: $e');
+    return [];
+  }
+}
+
+
+Future<List<Chapter>> sendCourseData(String courseId, String pdfLink) async {
+  final String chapterUrl = dotenv.env['CHAPTER_URL'] ?? '';
+  if (chapterUrl.isEmpty) {
+    throw Exception('Chapter URL is not set.');
+  }
+
+  final Map<String, String> queryParams = {
+    'course_id': courseId,
+    'pdf_link': pdfLink,
+  };
+
+  final response = await apiService.publicRequest(
+    url: chapterUrl,
+    queryParams: queryParams,
+  );
+
+
+  try {
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+
+      if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+        List<dynamic> data = decoded['data'];
+
+        List<Chapter> chapters = data.map((json) {
+          return Chapter.fromJson(json); // Convert each item to a Chapter
+        }).toList();
+
+        return chapters;
+      } else {
+        throw Exception('Unexpected response format: Missing "data" key');
+      }
+    } else {
+      throw Exception('Failed to load courses. Status code: ${response.statusCode}');
+    }
+  } catch (e) {
+    throw Exception("Error fetching courses: $e");
+  }
+}
+
+
 
   Future<List<Routine>> fetchRoutine() async {
     final String routineUrl = dotenv.env['ROUTINE_URL'] ?? '';

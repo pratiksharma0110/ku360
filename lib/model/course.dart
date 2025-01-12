@@ -1,10 +1,12 @@
 class Course {
+  final  int subId; 
   final String subCode;
   final String subName;
   final int subCredit;
   final String pdfLink;
 
   Course({
+    required this.subId,
     required this.subCode,
     required this.subName,
     required this.subCredit,
@@ -13,9 +15,10 @@ class Course {
 
   factory Course.fromJson(Map<String, dynamic> json) {
     return Course(
-      subCode: json['sub_code'] ?? '',
-      subName: json['sub_name'] ?? '',
-      subCredit: json['sub_credit'] ?? 0,
+      subId: json['id'] ?? 0,
+      subCode: json['subject_code'] ?? '',
+      subName: json['subject'] ?? '',
+      subCredit: json['credit'] ?? 0,
       pdfLink: json['pdf_link'] ?? '',
     );
   }
