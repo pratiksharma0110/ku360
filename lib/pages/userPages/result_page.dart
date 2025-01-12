@@ -65,9 +65,7 @@ class SearchResultsPage extends StatelessWidget {
                   trailing: result.isVideo
                       ? const Icon(Icons.play_circle_fill, color: Colors.red)
                       : null,
-                  onTap: () {
-                    _openLink(context, result.link);
-                  },
+                  onTap: () => _openLink(context, result.link),
                 ),
               );
             },
@@ -77,32 +75,46 @@ class SearchResultsPage extends StatelessWidget {
     );
   }
 
-  void _openLink(BuildContext context, String url) async {
-    if (url.isNotEmpty) {
-      final Uri uri = Uri.parse(url); // Convert string to Uri
+  Future<void> _openLink(BuildContext context, String url) async {
+    if (url.isEmpty) return;
 
-      showDialog(
+    try {
+      final Uri uri = Uri.parse(url);
+      
+      final bool canLaunch = await canLaunchUrl(uri);
+      if (!canLaunch) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Cannot open this link")),
+          );
+        }
+        return;
+      }
+
+      await showDialog(
         context: context,
         builder: (_) => AlertDialog(
           title: const Text('Open Link'),
           content: const Text('Do you want to open this link?'),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri); // Use Uri with launchUrl
-                } else {
-                  // Show error if URL cannot be launched
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Couldn't open the link")),
+                try {
+                  await launchUrl(
+                    uri,
+                    mode: LaunchMode.externalApplication,
                   );
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Error opening link: $e")),
+                    );
+                  }
                 }
               },
               child: const Text('Open'),
@@ -110,6 +122,12 @@ class SearchResultsPage extends StatelessWidget {
           ],
         ),
       );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Invalid URL: $e")),
+        );
+      }
     }
   }
 }
