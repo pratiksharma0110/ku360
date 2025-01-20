@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ku360/model/attendance.dart';
 import 'package:ku360/model/routine.dart';
 import 'package:ku360/services/user_service.dart';
 
@@ -9,7 +10,11 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: FutureBuilder(
-        future: userService.fetchUserProfile(),
+        future: Future.wait([
+          userService.fetchUserProfile(),
+          userService.fetchRoutine(),
+          userService.fetchAttendances(),
+        ]),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
@@ -21,7 +26,10 @@ class HomePage extends StatelessWidget {
               ),
             );
           } else if (snapshot.hasData) {
-            final profile = snapshot.data!;
+            final data = snapshot.data as List<dynamic>;
+            final profile = data[0];
+            final routine = data[1] as List<Routine>;
+            final attendances = data[2] as List<Attendance>;
 
             return SingleChildScrollView(
               child: Padding(
@@ -51,30 +59,25 @@ class HomePage extends StatelessWidget {
                         _buildDashboardCard(
                           context,
                           title: 'Attendance',
-                          subtitle: '85%',
+                          subtitle: "Track your attendance",
                           icon: Icons.bar_chart,
                           color: Colors.blue,
-                        ),
-                        _buildDashboardCard(
-                          context,
-                          title: 'Today\'s Classes',
-                          subtitle: '3 Classes',
-                          icon: Icons.schedule,
-                          color: Colors.orange,
                           onTap: () {
-                            _showClassDetails(context);
+                            _showAttendanceDetails(context, attendances);
                           },
                         ),
                         _buildDashboardCard(
                           context,
-                          title: 'Events',
-                          subtitle: '2 Upcoming',
-                          icon: Icons.event,
-                          color: Colors.green,
+                          title: 'Today\'s Classes',
+                          subtitle: '${routine.length} Classes',
+                          icon: Icons.schedule,
+                          color: Colors.orange,
+                          onTap: () {
+                            _showClassDetails(context, routine);
+                          },
                         ),
                       ],
                     ),
-                 
                   ],
                 ),
               ),
@@ -103,7 +106,7 @@ class HomePage extends StatelessWidget {
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.28,
+          width: MediaQuery.of(context).size.width * 0.4, // Adjusted width
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
@@ -125,119 +128,157 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  void _showClassDetails(BuildContext context) {
-  showModalBottomSheet(
-    context: context,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (context) {
-      final userService = UserService();
-
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey[400],
-                  borderRadius: BorderRadius.circular(12),
+  void _showClassDetails(BuildContext context, List<Routine> routine) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Today\'s Classes',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
+              SizedBox(height: 16),
+              Text(
+                'Today\'s Classes',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            SizedBox(height: 16),
-            FutureBuilder<List<Routine>>(
-              future: userService.fetchRoutine(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(),
-                  );
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  );
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.event_busy,
+              SizedBox(height: 16),
+              routine.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No Classes Today!',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                           color: Colors.blueAccent,
-                          size: 64,
                         ),
-                        SizedBox(height: 16),
-                        Text(
-                          'No Classes Today!',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueAccent,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Enjoy your free time and relax.\nYou deserve it!',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                } else {
-                  final routines = snapshot.data!;
-                  return Expanded(
-                    child: ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: routines.length,
-                      itemBuilder: (context, index) {
-                        final routine = routines[index];
-                        return ListTile(
-                          leading: Icon(
-                            Icons.class_,
-                            color: Colors.blueAccent,
-                          ),
-                          title: Text(routine.subName),
-                          subtitle: Text('${routine.time}'),
-                          trailing: Text(
-                            routine.instructor,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[600],
+                      ),
+                    )
+                  : Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: routine.length,
+                        itemBuilder: (context, index) {
+                          final item = routine[index];
+                          return ListTile(
+                            leading: Icon(
+                              Icons.class_,
+                              color: Colors.blueAccent,
                             ),
-                          ),
-                        );
-                      },
+                            title: Text(item.subName),
+                            subtitle: Text('${item.time}'),
+                            trailing: Text(
+                              item.instructor,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
+            ],
+          ),
+        );
+      },
+    );
+  }
 
+  void _showAttendanceDetails(BuildContext context, List<Attendance> attendances) {
+    showModalBottomSheet(
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[400],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Attendance Summary',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              SizedBox(height: 16),
+              attendances.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No attendance data available.',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blueAccent,
+                        ),
+                      ),
+                    )
+                  : Expanded(
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: attendances.length,
+                        itemBuilder: (context, index) {
+                          final attendance = attendances[index];
+                          return ListTile(
+                            leading: Icon(
+                              Icons.school,
+                              color: Colors.blueAccent,
+                            ),
+                            title: Text(attendance.sub_code),
+                            subtitle: Text(
+                              'Attended: ${attendance.attended_classes}/${attendance.total_classes}',
+                            ),
+                            trailing: Text(
+                              '${attendance.attended_percentage}%',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: double.parse(attendance.attended_percentage) >= 75
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  
 }

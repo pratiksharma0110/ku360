@@ -58,22 +58,21 @@ class CoursesPage extends StatelessWidget {
                       return GestureDetector(
                         onTap: () async {
                           try {
-                            // Call the function to send data before navigating
+                          
                             await userService.sendCourseData(course.subId.toString(), course.pdfLink);
 
-                            // After the data is sent, navigate to the ChapterPage
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChaptersPage(
                                   courseId: course.subId.toString(),
                                   pdfLink: course.pdfLink,
-                                  courseName: course.subName, // Pass the subject name to ChapterPage
+                                  courseName: course.subName, 
                                 ),
                               ),
                             );
                           } catch (e) {
-                            // If there was an error with sending course data
+                        
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text('Error sending course data: $e'),
