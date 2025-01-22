@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ku360/components/appbar.dart'; // Your custom appbar
-import 'package:ku360/components/navbar.dart'; // Your custom navbar
+import 'package:ku360/components/appbar.dart'; 
+import 'package:ku360/components/navbar.dart'; 
 import 'package:ku360/pages/userPages/course_page.dart';
 import 'package:ku360/pages/userPages/home.dart';
 import 'package:ku360/pages/userPages/notice.dart';

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:ku360/components/card.dart';
 import 'package:ku360/model/userprofile.dart';
-
 import 'package:ku360/services/user_service.dart';
+import 'settings.dart'; // Import the settings screen
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -26,6 +26,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              // Navigate to the settings page
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: FutureBuilder<UserProfile>(
         future: _profileFuture,
         builder: (context, snapshot) {
@@ -80,9 +95,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 16),
                   MyCard(
-                      icon: Iconsax.teacher,
-                      iconColor: theme.primaryColor,
-                      text: batch),
+                    icon: Iconsax.teacher,
+                    iconColor: theme.primaryColor,
+                    text: batch,
+                  ),
                 ],
               ),
             ),

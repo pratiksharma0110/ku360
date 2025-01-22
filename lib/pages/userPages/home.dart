@@ -53,30 +53,27 @@ class HomePage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildDashboardCard(
-                          context,
-                          title: 'Attendance',
-                          subtitle: "Track your attendance",
-                          icon: Icons.bar_chart,
-                          color: Colors.blue,
-                          onTap: () {
-                            _showAttendanceDetails(context, attendances);
-                          },
-                        ),
-                        _buildDashboardCard(
-                          context,
-                          title: 'Today\'s Classes',
-                          subtitle: '${routine.length} Classes',
-                          icon: Icons.schedule,
-                          color: Colors.orange,
-                          onTap: () {
-                            _showClassDetails(context, routine);
-                          },
-                        ),
-                      ],
+                    // Vertical layout for the cards
+                    _buildDashboardCard(
+                      context,
+                      title: 'Attendance',
+                      subtitle: "Track your attendance",
+                      icon: Icons.bar_chart,
+                      color: Colors.blue,
+                      onTap: () {
+                        _showAttendanceDetails(context, attendances);
+                      },
+                    ),
+                    SizedBox(height: 16),  // Added space between cards
+                    _buildDashboardCard(
+                      context,
+                      title: 'Today\'s Classes',
+                      subtitle: '${routine.length} Classes',
+                      icon: Icons.schedule,
+                      color: Colors.orange,
+                      onTap: () {
+                        _showClassDetails(context, routine);
+                      },
                     ),
                   ],
                 ),
@@ -106,12 +103,12 @@ class HomePage extends StatelessWidget {
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.4, // Adjusted width
+          width: MediaQuery.of(context).size.width * 0.9, // Adjusted width for better fitting
           padding: EdgeInsets.all(16),
           child: Column(
             children: [
               Icon(icon, size: 32, color: color),
-              SizedBox(height: 8),
+              SizedBox(height: 13),
               Text(
                 title,
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
@@ -279,6 +276,4 @@ class HomePage extends StatelessWidget {
       },
     );
   }
-
-  
 }

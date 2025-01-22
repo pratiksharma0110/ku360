@@ -49,6 +49,46 @@ class UserService {
     }
   }
 
+Future<Map<String, dynamic>> changePassword({
+  required String password,
+  required String newPassword,
+}) async { 
+  final String changePasswordUrl = dotenv.env['CHANGE_PASSWORD_URL'] ?? '';
+  if (changePasswordUrl.isEmpty) {
+    throw Exception('Change password URL is not set.');
+  }
+  try {
+    final response = await apiService.securedRequest(
+      changePasswordUrl,
+      method: 'POST',
+      body: {
+        'password': password,
+        'newPassword': newPassword,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseBody = json.decode(response.body);
+      return {
+        'success': true,
+        'data': responseBody['message'] ?? 'Password changed successfully',
+      };
+    } else {
+      final errorMessage = json.decode(response.body)['message'] ?? 'Unknown error';
+      return {
+        'success': false,
+        'data': errorMessage,
+      };
+    }
+  } catch (e) {
+    print('Error changing password: $e');
+    return {
+      'success': false,
+      'data': 'Error connecting to the server',
+    };
+  }
+}
+
   Future<UserProfile> fetchUserProfile() async {
     final String userprofileUrl = dotenv.env['USER_PROFILE'] ?? '';
     try {
@@ -115,6 +155,7 @@ Future<List<SearchResult>> searchResults(String? topicName, String chapName, Str
     'chapter_name': chapName,
     'course_name': courseName,
   };
+
 
 
   try {
@@ -223,8 +264,7 @@ Future<List<Topic>> sendChapterData(int chapterId) async {
 
 
   Future<List<Routine>> fetchRoutine() async {
-    final String routineUrl = dotenv.env['ROUTINE_URL'] ?? '';
-
+    final String routineUrl = dotenv.env['ROUTINE_URL'] ?? '';; 
     final userProfile = await fetchUserProfile();
     final year = userProfile.year.split(' ')[1];
     final semester = userProfile.semester.split(' ')[1];
@@ -290,11 +330,11 @@ Future<List<Topic>> sendChapterData(int chapterId) async {
 
   Future<List<Attendance>> fetchAttendances() async {
   final String attendanceUrl = dotenv.env['ATTENDANCE_URL'] ?? '';
-
+  print(attendanceUrl); 
   try {
     print("ya xa"); 
     final response = await apiService.securedRequest(attendanceUrl);
-
+    print(response.body); 
     if (response.statusCode == 200) {
       
       final decoded = json.decode(response.body);
