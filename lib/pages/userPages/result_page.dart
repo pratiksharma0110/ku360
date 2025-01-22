@@ -6,12 +6,14 @@ import 'package:url_launcher/url_launcher.dart';
 class SearchResultsPage extends StatelessWidget {
   final String chapterName;
   final String courseName;
+  final String? topicName;
   final userService = UserService();
 
   SearchResultsPage({
     super.key,
     required this.chapterName,
     required this.courseName,
+    this.topicName,
   });
 
   @override
@@ -21,7 +23,7 @@ class SearchResultsPage extends StatelessWidget {
         title: Text('Search Results'),
       ),
       body: FutureBuilder<List<SearchResult>>(
-        future: userService.searchResults(chapterName, courseName),
+        future: userService.searchResults(topicName, chapterName, courseName),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -75,59 +77,58 @@ class SearchResultsPage extends StatelessWidget {
     );
   }
 
-  Future<void> _openLink(BuildContext context, String url) async {
-    if (url.isEmpty) return;
+ Future<void> _openLink(BuildContext context, String url) async {
+  if (url.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("URL is empty")),
+    );
+    return;
+  }
 
-    try {
-      final Uri uri = Uri.parse(url);
-      
-      final bool canLaunch = await canLaunchUrl(uri);
-      if (!canLaunch) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Cannot open this link")),
-          );
-        }
-        return;
-      }
+  try {
+    final Uri uri = Uri.parse(url);
 
-      await showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text('Open Link'),
-          content: const Text('Do you want to open this link?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                try {
-                  await launchUrl(
-                    uri,
-                    mode: LaunchMode.externalApplication,
-                  );
-                } catch (e) {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Error opening link: $e")),
-                    );
-                  }
-                }
-              },
-              child: const Text('Open'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
+    if (!await canLaunchUrl(uri)) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Invalid URL: $e")),
+          const SnackBar(content: Text("Cannot open this link")),
         );
       }
+      return;
+    }
+
+    final bool confirm = await showDialog<bool>(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text('Open Link'),
+            content: Text('Do you want to open this link?\n\n$url'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Open'),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+
+    if (confirm) {
+      // Launch the URL in an external browser
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error opening URL: $e")),
+      );
     }
   }
+}
 }

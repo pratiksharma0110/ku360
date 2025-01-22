@@ -7,6 +7,7 @@ import 'package:ku360/model/attendance.dart';
 import 'package:ku360/model/course.dart';
 import 'package:ku360/model/notice.dart';
 import 'package:ku360/model/routine.dart';
+import 'package:ku360/model/topic.dart';
 import 'package:ku360/model/userprofile.dart';
 import 'package:ku360/services/api.dart';
 import 'package:ku360/model/searchResult.dart';
@@ -107,30 +108,26 @@ Future<List<Course>> fetchCourses() async {
     throw Exception("Error fetching courses: $e");
   }
 }
-Future<List<SearchResult>> searchResults(String chapName, String courseName) async {
+Future<List<SearchResult>> searchResults(String? topicName, String chapName, String courseName) async {
   final String searchUrl = dotenv.env['SEARCH_URL'] ?? '';
   final Map<String, String> queryParams = {
+    if (topicName != null && topicName.isNotEmpty) 'topic_name': topicName,
     'chapter_name': chapName,
     'course_name': courseName,
   };
 
-  print('Chapter Name: $chapName');
-  print('Course Name: $courseName');
-  print('Search URL: $searchUrl');
 
   try {
     final response = await apiService.publicRequest(
       url: searchUrl,
       queryParams: queryParams,
     );
-    print(response.body);
+    print('Response: ${response.body}');
 
     if (response.statusCode == 200) {
       final List<dynamic> jsonData = json.decode(response.body);
 
-      // Map the response data to SearchResult objects
       return jsonData.map<SearchResult>((item) {
-        // Assuming item has the necessary fields based on your API response
         return SearchResult.fromJson(item);
       }).toList();
     } else {
@@ -159,8 +156,7 @@ Future<List<Chapter>> sendCourseData(String courseId, String pdfLink) async {
     url: chapterUrl,
     queryParams: queryParams,
   );
-
-
+  print(response.body);
   try {
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -181,6 +177,46 @@ Future<List<Chapter>> sendCourseData(String courseId, String pdfLink) async {
     }
   } catch (e) {
     throw Exception("Error fetching courses: $e");
+  }
+}
+
+Future<List<Topic>> sendChapterData(int chapterId) async {
+
+  final String topicUrl = dotenv.env['TOPIC_URL'] ?? '';
+  if (topicUrl.isEmpty) {
+    throw Exception('Chapter URL is not set.');
+  }
+
+  final Map<String, String> queryParams = {
+    'chapter_id': chapterId.toString(),
+  };
+
+  final response = await apiService.publicRequest(
+    url: topicUrl,
+    queryParams: queryParams,
+  );
+  print(response.body);
+
+  try {
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+
+      if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+        List<dynamic> data = decoded['data'];
+
+        List<Topic> topics = data.map((json) {
+          return Topic.fromJson(json); 
+        }).toList();
+
+        return topics;
+      } else {
+        throw Exception('Unexpected response format: Missing "data" key');
+      }
+    } else {
+      throw Exception('Failed to load topics. Status code: ${response.statusCode}');
+    }
+  } catch (e) {
+    throw Exception("Error fetching topics: $e");
   }
 }
 
@@ -256,13 +292,8 @@ Future<List<Chapter>> sendCourseData(String courseId, String pdfLink) async {
   final String attendanceUrl = dotenv.env['ATTENDANCE_URL'] ?? '';
 
   try {
-    
-
-    
-    final response = await apiService.securedRequest(
-      attendanceUrl,
-      
-    );
+    print("ya xa"); 
+    final response = await apiService.securedRequest(attendanceUrl);
 
     if (response.statusCode == 200) {
       

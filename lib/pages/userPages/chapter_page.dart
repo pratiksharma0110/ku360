@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:ku360/model/topic.dart';
 import 'package:ku360/services/user_service.dart';
 import 'package:ku360/model/chapter.dart';
-import 'package:ku360/pages/userPages/result_page.dart'; // Ensure this is the correct path to the SearchResultsPage
+import 'package:ku360/pages/userPages/result_page.dart';
 
 class ChaptersPage extends StatefulWidget {
   final String courseId;
@@ -22,30 +23,38 @@ class ChaptersPage extends StatefulWidget {
 
 class _ChaptersPageState extends State<ChaptersPage> {
   late Future<List<Chapter>> futureChapters;
+  final Map<int, Future<List<Topic>>> _topicsCache = {};
 
   @override
   void initState() {
     super.initState();
-    // Initialize the futureChapters variable when the page loads
-    futureChapters = fetchCourses();
+    futureChapters = fetchChapters();
   }
 
-  Future<List<Chapter>> fetchCourses() async {
+  Future<List<Chapter>> fetchChapters() async {
     try {
-      // Fetch the courses using the sendCourseData method
       final chapters = await widget.userService.sendCourseData(widget.courseId, widget.pdfLink);
-      print(chapters); // Debug: Print the list of chapters to check if chapterName is present
       return chapters;
     } catch (e) {
       throw Exception('Failed to fetch chapters: $e');
     }
   }
 
+  Future<List<Topic>> fetchTopics(int chapterId) async {
+    if (_topicsCache.containsKey(chapterId)) {
+      return _topicsCache[chapterId]!;
+    }
+
+    final topicsFuture = widget.userService.sendChapterData(chapterId);
+    _topicsCache[chapterId] = topicsFuture;
+    return topicsFuture;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chapters for ${widget.courseName}'), // Display course name in the title
+        title: Text('Chapters for ${widget.courseName}'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -70,23 +79,87 @@ class _ChaptersPageState extends State<ChaptersPage> {
               itemCount: chapters.length,
               itemBuilder: (context, index) {
                 final chapter = chapters[index];
-                print(chapter.chapterName); 
 
                 return Card(
                   margin: EdgeInsets.symmetric(vertical: 8.0),
-                  child: ListTile(
-                    title: Text(chapter.chapterName), 
-                    onTap: () async {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SearchResultsPage(
-                            chapterName: chapter.chapterName,
-                            courseName: widget.courseName,
+                  child: ExpansionTile(
+                    title: Text(chapter.chapterName),
+                    children: [
+                      // Add chapter name as the first clickable item
+                      ListTile(
+                        title: Text(
+                          'View entire chapter',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
-                      );
-                    },
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SearchResultsPage(
+                                topicName: null, 
+                                chapterName: chapter.chapterName,
+                                courseName: widget.courseName,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      Divider(), 
+                      FutureBuilder<List<Topic>>(
+                        future: fetchTopics(chapter.chapterId),
+                        builder: (context, topicSnapshot) {
+                          if (topicSnapshot.connectionState == ConnectionState.waiting) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: CircularProgressIndicator(),
+                            );
+                          }
+
+                          if (topicSnapshot.hasError) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('Error loading topics: ${topicSnapshot.error}'),
+                            );
+                          }
+
+                          if (!topicSnapshot.hasData || topicSnapshot.data!.isEmpty) {
+                            return Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text('No topics available for this chapter.'),
+                            );
+                          }
+
+                          final topics = topicSnapshot.data!;
+
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: topics.length,
+                            itemBuilder: (context, index) {
+                              final topic = topics[index];
+                              return ListTile(
+                                title: Text(topic.topicName),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SearchResultsPage(
+                                        topicName: topic.topicName,
+                                        chapterName: chapter.chapterName,
+                                        courseName: widget.courseName,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 );
               },

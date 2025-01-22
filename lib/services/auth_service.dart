@@ -85,6 +85,8 @@ class AuthService {
    Future<void> sendOtp(String email) async {
     final String otpUrl = dotenv.env['SEND_OTP'] ?? '';
     final url = Uri.parse(otpUrl);
+    print("ya xa");
+    print(url);
     try {
       final response = await http.post(
         url,

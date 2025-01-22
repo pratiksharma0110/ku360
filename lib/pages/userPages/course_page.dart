@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ku360/model/course.dart';
 import 'package:ku360/services/user_service.dart';
 import 'chapter_page.dart'; 
+import 'package:url_launcher/url_launcher.dart';
 
 class CoursesPage extends StatelessWidget {
   final userService = UserService();
@@ -121,20 +122,32 @@ class CoursesPage extends StatelessWidget {
                                       padding: EdgeInsets.symmetric(horizontal: 4),
                                     ),
                                     TextButton(
-                                      onPressed: () {
-                                        if (course.pdfLink.isNotEmpty) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            SnackBar(
-                                              content: Text('PDF link: ${course.pdfLink}'),
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: Text(
-                                        'View',
-                                        style: TextStyle(fontSize: 12),
+                                        onPressed: () async {
+                                          if (course.pdfLink.isNotEmpty) {
+                                            try {
+                                              final Uri pdfUri = Uri.parse(course.pdfLink);
+                                              if (await canLaunchUrl(pdfUri)) {
+                                                await launchUrl(
+                                                  pdfUri,
+                                                  mode: LaunchMode.externalApplication,
+                                                );
+                                              } else {
+                                                ScaffoldMessenger.of(context).showSnackBar(
+                                                  const SnackBar(content: Text('Could not launch PDF link')),
+                                                );
+                                              }
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(content: Text('Error opening PDF link: $e')),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: Text(
+                                          'View',
+                                          style: TextStyle(fontSize: 12),
+                                        ),
                                       ),
-                                    ),
                                   ],
                                 ),
                               ],
